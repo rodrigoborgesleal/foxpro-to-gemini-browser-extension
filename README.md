@@ -19,6 +19,16 @@ texto extraído      ◀────────────  lê out.txt (cp125
       └─ cria um File .txt e o anexa ao Gemini (drop/file input) — nada é enviado automaticamente
 ```
 
+## Capturas de tela
+
+| Extensão — configuração | Extensão — prévia de layout |
+| :---: | :---: |
+| ![Configuração da extensão](docs/images/extension-setup.png) | ![Prévia de layout do formulário](docs/images/extension-layout.png) |
+
+<p align="center">
+  <img src="docs/images/systray.png" alt="Configurações do Fox2Txt no aplicativo de bandeja" width="620">
+</p>
+
 ## Requisitos
 
 | Item | Observação |
@@ -243,6 +253,7 @@ extension/
   vfp-layout.js      renderizador HTML/CSS da prévia de layout
 docs/
   class-browser-cli.md   como a automação do Class Browser foi descoberta
+  images/                capturas usadas no README
 ```
 
 ## Segurança e privacidade

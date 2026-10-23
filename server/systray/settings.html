@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:;"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fox2Txt — Configurações</title>
+    <link rel="stylesheet" href="settings.css" />
+  </head>
+  <body>
+    <div class="aurora" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">
+          <img class="brand-icon" src="assets/icon.png" alt="" />
+          <span class="brand-spark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.6c.55 3.83 2.02 5.3 5.85 5.85-3.83.55-5.3 2.02-5.85 5.85-.55-3.83-2.02-5.3-5.85-5.85C9.98 7.9 11.45 6.43 12 2.6Z" />
+            </svg>
+          </span>
+        </span>
+        <div>
+          <h1><span class="grad">Fox2Txt</span></h1>
+          <p class="subtitle">Servidor local para extração de formulários Visual FoxPro</p>
+        </div>
+      </div>
+      <span id="version" class="pill">v0.0.0</span>
+    </header>
+
+    <main>
+      <section class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="icon-chip" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="7" rx="2" />
+                <rect x="3" y="13" width="18" height="7" rx="2" />
+                <path d="M7 7.5h.01M7 16.5h.01" />
+              </svg>
+            </span>
+            <div>
+              <h2>Servidor local</h2>
+              <p class="muted">
+                A extensão do Chrome usa
+                <code id="serverUrl">http://127.0.0.1:8765</code>
+              </p>
+            </div>
+          </div>
+          <span id="serverBadge" class="badge off">parado</span>
+        </div>
+
+        <div class="row wrap">
+          <button id="startBtn" class="btn primary" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M8 5.5v13a1 1 0 0 0 1.53.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5Z" />
+            </svg>
+            Iniciar servidor
+          </button>
+          <button id="stopBtn" class="btn ghost" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <rect x="7" y="7" width="10" height="10" rx="1.5" />
+            </svg>
+            Parar servidor
+          </button>
+          <button id="openLogsBtn" class="btn ghost" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 6h16M4 12h10M4 18h13" />
+            </svg>
+            Abrir logs
+          </button>
+        </div>
+
+        <p id="serverError" class="error" hidden></p>
+
+        <label class="check">
+          <input id="autoStart" type="checkbox" />
+          Iniciar o servidor automaticamente com o aplicativo
+        </label>
+        <label class="check">
+          <input id="launchAtLogin" type="checkbox" />
+          Iniciar o Fox2Txt com o Windows
+        </label>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <span class="icon-chip fox-chip" aria-hidden="true">
+            <img src="assets/vfp.png" alt="" />
+          </span>
+          <div>
+            <h2>Visual FoxPro 9</h2>
+            <p class="muted">
+              Caminho do <code>vfp9.exe</code>. Se ficar em branco, o Fox2Txt procura nas
+              instalações padrão.
+            </p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <input
+            id="vfpPath"
+            type="text"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="C:\Program Files (x86)\Microsoft Visual FoxPro 9\vfp9.exe"
+          />
+          <button id="pickVfpBtn" class="btn ghost no-shrink" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h7.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-10Z" />
+            </svg>
+            Procurar…
+          </button>
+        </div>
+
+        <div class="row wrap">
+          <button id="detectVfpBtn" class="btn ghost small" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+            Detectar automaticamente
+          </button>
+          <button id="testVfpBtn" class="btn ghost small" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m5 12 4.5 4.5L19 7" />
+            </svg>
+            Testar
+          </button>
+          <span id="vfpStatus" class="muted inline">—</span>
+        </div>
+
+        <label class="field">
+          <span>Tempo limite da extração (segundos)</span>
+          <input id="timeoutSec" type="number" min="5" max="600" step="5" />
+        </label>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <span class="icon-chip" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 7h7M15 7h5M4 12h3M11 12h9M4 17h9M17 17h3" />
+              <circle cx="13" cy="7" r="2" />
+              <circle cx="9" cy="12" r="2" />
+              <circle cx="15" cy="17" r="2" />
+            </svg>
+          </span>
+          <div>
+            <h2>Avançado</h2>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>Modo padrão para CLI e requisições sem modo</span>
+          <select id="defaultMode">
+            <option value="classbrowser">Class Browser (DEFINE CLASS)</option>
+            <option value="scctext">SCCTEXT (dump completo)</option>
+          </select>
+        </label>
+
+        <label class="check">
+          <input id="keepJobs" type="checkbox" />
+          Manter arquivos temporários das extrações (diagnóstico)
+        </label>
+        <label class="check">
+          <input id="debug" type="checkbox" />
+          Log detalhado (inclui stdout/stderr do VFP)
+        </label>
+
+        <div class="row wrap">
+          <button id="openDataBtn" class="btn ghost small" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h7.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-10Z" />
+            </svg>
+            Abrir pasta de dados
+          </button>
+          <button id="openConfigBtn" class="btn ghost small" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z" />
+              <path d="M14 3v5h5" />
+              <path d="M9 13h6M9 17h6" />
+            </svg>
+            Abrir config.json
+          </button>
+        </div>
+
+        <p class="muted">
+          O servidor escuta em <code>127.0.0.1:8765</code>. A extensão do Chrome usa esse
+          endereço fixo. Para testes, o CLI pode usar <code>FOX2TXT_PORT</code>; a extensão
+          continuará usando 8765.
+        </p>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div class="card-title">
+            <span class="icon-chip" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <path d="m7 9 3 3-3 3M13 15h4" />
+              </svg>
+            </span>
+            <div>
+              <h2>Log do servidor</h2>
+            </div>
+          </div>
+          <button id="refreshLogBtn" class="btn ghost small" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-2.34 5.66" />
+              <path d="M20 4v7h-7" />
+            </svg>
+            Atualizar
+          </button>
+        </div>
+        <pre id="log" class="log">(sem linhas)</pre>
+        <p class="muted">
+          Arquivo: <span id="logPath">—</span>
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span id="feedback" class="feedback" role="status" aria-live="polite"></span>
+      <button id="saveBtn" class="btn primary" type="button">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2.6c.55 3.83 2.02 5.3 5.85 5.85-3.83.55-5.3 2.02-5.85 5.85-.55-3.83-2.02-5.3-5.85-5.85C9.98 7.9 11.45 6.43 12 2.6Z" />
+          <path d="M18.7 14.4c.28 1.94 1.02 2.68 2.96 2.96-1.94.28-2.68 1.02-2.96 2.96-.28-1.94-1.02-2.68-2.96-2.96 1.94-.28 2.68-1.02 2.96-2.96Z" opacity=".9" />
+        </svg>
+        Salvar alterações
+      </button>
+    </footer>
+
+    <script src="settings.js"></script>
+  </body>
+</html>

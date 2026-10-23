@@ -1,0 +1,74 @@
+{
+  "name": "fox2txt",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Extrator local de código de formulários Visual FoxPro (.scx) via Class Browser / SCCTEXT, com bandeja do Windows",
+  "main": "systray/main.js",
+  "author": "Fox2Txt",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server.js",
+    "cli": "node cli.js",
+    "tray": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win portable",
+    "dist:installer": "electron-builder --win nsis"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "br.com.fox2txt.app",
+    "productName": "Fox2Txt",
+    "asar": true,
+    "directories": {
+      "output": "dist",
+      "buildResources": "systray/assets"
+    },
+    "files": [
+      "systray/**/*",
+      "server.js",
+      "core.js",
+      "layout.js",
+      "config.js",
+      "vfp/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "systray/assets",
+        "to": "assets",
+        "filter": [
+          "icon.ico",
+          "icon.png"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "systray/assets/icon.ico",
+      "artifactName": "Fox2Txt-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Fox2Txt-${version}-portable.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "artifactName": "Fox2Txt-${version}-setup.${ext}"
+    }
+  }
+}

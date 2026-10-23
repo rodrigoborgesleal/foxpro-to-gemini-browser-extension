@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FoxPro → Gemini</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+    <script src="theme-boot.js"></script>
+  </head>
+  <body data-access="checking">
+    <div class="aurora" aria-hidden="true"></div>
+
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark">
+          <img src="icons/icon32.png" alt="Visual FoxPro" />
+          <span class="brand-spark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.6c.55 3.83 2.02 5.3 5.85 5.85-3.83.55-5.3 2.02-5.85 5.85-.55-3.83-2.02-5.3-5.85-5.85C9.98 7.9 11.45 6.43 12 2.6Z" />
+              <path d="M18.7 14.4c.28 1.94 1.02 2.68 2.96 2.96-1.94.28-2.68 1.02-2.96 2.96-.28-1.94-1.02-2.68-2.96-2.96 1.94-.28 2.68-1.02 2.96-2.96Z" opacity=".85" />
+            </svg>
+          </span>
+        </span>
+        <div class="brand-text">
+          <h1><span class="grad">FoxPro</span> <span class="arrow">→</span> <span class="grad">Gemini</span></h1>
+          <p class="subtitle">Código do formulário como anexo .txt</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button
+          id="themeToggle"
+          class="theme-switch"
+          type="button"
+          role="switch"
+          aria-checked="false"
+          aria-label="Mudar para tema escuro"
+          title="Mudar para tema escuro"
+        >
+          <span class="theme-switch-thumb" aria-hidden="true">
+            <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
+            <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z" />
+            </svg>
+          </span>
+        </button>
+        <div class="server" id="server" title="Servidor local">
+          <span class="dot" id="serverDot"></span>
+          <span id="serverText">verificando…</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="gate" id="gate" aria-labelledby="gateTitle">
+      <span class="gate-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3 4.5 6v5.5c0 4.4 3.1 8.2 7.5 9.5 4.4-1.3 7.5-5.1 7.5-9.5V6L12 3Z" />
+          <path d="m9 11.5 2 2 4-4" />
+        </svg>
+      </span>
+      <h2 id="gateTitle">Verificando a aba…</h2>
+      <p class="muted" id="gateText">Confirmando se o Gemini está aberto e com uma conta logada.</p>
+      <div class="gate-actions">
+        <button id="gateAction" class="btn primary" type="button" data-action="open-gemini">
+          Abrir Gemini
+        </button>
+        <button id="gateRetry" class="btn ghost" type="button">Verificar novamente</button>
+      </div>
+      <p class="gate-note" id="gateNote">
+        A extensão só é ativada em uma aba do Gemini com conta Google logada.
+      </p>
+    </section>
+
+    <main id="main" hidden>
+      <div class="setup-grid">
+        <section class="card">
+          <div class="row between">
+            <div class="card-title">
+              <span class="icon-chip" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h7.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-10Z" />
+                </svg>
+              </span>
+              <div>
+                <h2>1. Pasta do projeto</h2>
+                <p class="muted" id="folderInfo">Nenhuma pasta selecionada.</p>
+              </div>
+            </div>
+            <label class="btn ghost" for="folderInput">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h7.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-10Z" />
+                <path d="M3 10h18" />
+              </svg>
+              Escolher pasta
+            </label>
+            <input
+              id="folderInput"
+              type="file"
+              webkitdirectory
+              multiple
+              hidden
+              aria-label="Selecionar pasta do projeto FoxPro"
+            />
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <span class="icon-chip" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z" />
+                <path d="M14 3v5h5" />
+                <path d="M9 13h6M9 17h6" />
+              </svg>
+            </span>
+            <div>
+              <h2>2. Formulário</h2>
+            </div>
+          </div>
+          <select id="formSelect" disabled aria-label="Formulário .scx">
+            <option value="">Selecione uma pasta com arquivos .scx…</option>
+          </select>
+          <p class="muted" id="formMeta"></p>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <span class="icon-chip" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14" />
+              </svg>
+            </span>
+            <div>
+              <h2>3. Formato da extração</h2>
+            </div>
+          </div>
+          <label class="radio">
+            <input type="radio" name="mode" value="classbrowser" checked />
+            <span class="radio-body">
+              <span class="radio-head">
+                <strong>Classe (DEFINE CLASS)</strong>
+                <span class="tag sparkle-tag">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 3c.55 3.83 2.02 5.3 5.85 5.85-3.83.55-5.3 2.02-5.85 5.85-.55-3.83-2.02-5.3-5.85-5.85C9.98 8.3 11.45 6.83 12 3Z" />
+                  </svg>
+                  recomendado
+                </span>
+              </span>
+              <small>Class Browser — código reconstruído, ideal para o Gemini</small>
+            </span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="mode" value="scctext" />
+            <span class="radio-body">
+              <span class="radio-head">
+                <strong>Dump completo (SCCTEXT)</strong>
+              </span>
+              <small>Todos os registros e propriedades binárias do .scx</small>
+            </span>
+          </label>
+        </section>
+      </div>
+
+      <div class="actions">
+        <button id="extractBtn" class="btn secondary" disabled>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 4v11" />
+            <path d="m8 11 4 4 4-4" />
+            <path d="M5 20h14" />
+          </svg>
+          Extrair
+        </button>
+        <button id="insertBtn" class="btn primary" disabled>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2.6c.55 3.83 2.02 5.3 5.85 5.85-3.83.55-5.3 2.02-5.85 5.85-.55-3.83-2.02-5.3-5.85-5.85C9.98 7.9 11.45 6.43 12 2.6Z" />
+            <path d="M18.7 14.4c.28 1.94 1.02 2.68 2.96 2.96-1.94.28-2.68 1.02-2.96 2.96-.28-1.94-1.02-2.68-2.96-2.96 1.94-.28 2.68-1.02 2.96-2.96Z" opacity=".9" />
+          </svg>
+          Extrair e anexar ao Gemini
+        </button>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <section class="card preview" id="previewBox" hidden>
+        <div class="row between">
+          <div class="card-title">
+            <span class="icon-chip" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m8 6-6 6 6 6M16 6l6 6-6 6" />
+              </svg>
+            </span>
+            <div>
+              <h2>Prévia</h2>
+              <p class="muted" id="previewStats"></p>
+            </div>
+          </div>
+          <div class="row gap">
+            <button id="copyBtn" class="btn ghost small" disabled>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="11" height="11" rx="2" />
+                <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+              </svg>
+              Copiar
+            </button>
+            <button id="downloadBtn" class="btn ghost small" disabled>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 4v11" />
+                <path d="m8 11 4 4 4-4" />
+                <path d="M5 20h14" />
+              </svg>
+              Baixar .txt
+            </button>
+            <button
+              id="expandBtn"
+              class="btn secondary small expand-btn"
+              type="button"
+              aria-expanded="false"
+              aria-controls="previewEditor"
+              title="Expandir a prévia"
+            >
+              <svg class="btn-icon icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" />
+              </svg>
+              <svg class="btn-icon icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 8H5a2 2 0 0 1-2-2V3M16 8h3a2 2 0 0 0 2-2V3M8 16H5a2 2 0 0 0-2 2v3M16 16h3a2 2 0 0 1 2 2v3" />
+                <path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M8 21v-3a2 2 0 0 0-2-2H3M16 21v-3a2 2 0 0 1 2-2h3" />
+              </svg>
+              <span class="expand-label">Expandir</span>
+            </button>
+          </div>
+        </div>
+        <div class="preview-tabs" role="tablist" aria-label="Visualização da prévia">
+          <button
+            id="tabCode"
+            class="preview-tab is-active"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-controls="previewEditor"
+          >
+            Código
+          </button>
+          <button
+            id="tabLayout"
+            class="preview-tab"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="layoutView"
+            disabled
+          >
+            Layout
+          </button>
+        </div>
+        <div class="editor" id="previewEditor">
+          <div class="editor-bar">
+            <span class="editor-lang"><span class="editor-dot" aria-hidden="true"></span> Visual FoxPro 9</span>
+            <span id="editorDirty" class="editor-dirty" hidden>editado</span>
+            <span id="editorCursor" class="editor-cursor">Ln 1, Col 1</span>
+          </div>
+          <div class="editor-frame">
+            <div class="editor-gutter" aria-hidden="true"><pre id="previewGutter">1</pre></div>
+            <div class="editor-surface">
+              <pre id="previewHighlight" class="editor-highlight" aria-hidden="true"></pre>
+              <textarea
+                id="preview"
+                class="editor-input"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                autocorrect="off"
+                wrap="off"
+                aria-label="Código Visual FoxPro extraído — editável"
+              ></textarea>
+            </div>
+          </div>
+          <div class="editor-foot">
+            <span id="editorInfo">A prévia é editável: o texto alterado é usado em Copiar, Baixar e Inserir como texto.</span>
+            <span class="editor-keyhint"><kbd>Ctrl</kbd>+<kbd>Espaço</kbd> ou <kbd>Ctrl</kbd>+<kbd>J</kbd></span>
+          </div>
+        </div>
+        <div class="layout-view" id="layoutView" hidden>
+          <div class="layout-toolbar">
+            <span class="layout-info" id="layoutInfo"></span>
+            <div class="layout-tools">
+              <button id="layoutFitBtn" class="btn ghost small" type="button" title="Ajustar o formulário à área visível">
+                Ajustar
+              </button>
+              <label class="layout-zoom" for="layoutZoom">
+                <span>Zoom</span>
+                <input id="layoutZoom" type="range" min="10" max="200" step="5" value="100" />
+                <output id="layoutZoomLabel" for="layoutZoom">100%</output>
+              </label>
+            </div>
+          </div>
+          <div class="layout-stage" id="layoutStage">
+            <div class="layout-canvas" id="layoutCanvas">
+              <div
+                class="layout-form"
+                id="layoutForm"
+                role="img"
+                aria-label="Prévia do layout do formulário Visual FoxPro"
+              ></div>
+            </div>
+          </div>
+          <p class="layout-note" id="layoutNote"></p>
+        </div>
+        <button id="insertTextBtn" class="btn ghost small fallback" disabled>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Inserir como texto no Gemini (plano B)
+        </button>
+      </section>
+
+      <footer class="hint">
+        <svg class="hint-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 3c.55 3.83 2.02 5.3 5.85 5.85-3.83.55-5.3 2.02-5.85 5.85-.55-3.83-2.02-5.3-5.85-5.85C9.98 8.3 11.45 6.83 12 3Z" />
+        </svg>
+        <span>
+          O código é anexado como arquivo .txt no campo de mensagem — como se você
+          o tivesse arrastado para o Gemini. Nada é enviado automaticamente.
+          Escreva seu comando e pressione Enter. Se o anexo falhar, use
+          <strong>Inserir como texto no Gemini (plano B)</strong>.
+        </span>
+      </footer>
+    </main>
+
+    <div
+      id="intelliPopup"
+      class="intelli"
+      role="listbox"
+      aria-label="Sugestões do IntelliSense Visual FoxPro"
+      hidden
+    >
+      <ul id="intelliList" class="intelli-list"></ul>
+      <div id="intelliHelp" class="intelli-help"></div>
+    </div>
+
+    <script src="vfp-language.js"></script>
+    <script src="vfp-highlight.js"></script>
+    <script src="vfp-layout.js"></script>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

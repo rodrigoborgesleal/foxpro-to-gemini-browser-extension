@@ -1,0 +1,11 @@
+node_modules/
+.poc/
+server/dist/
+*.log
+*.fxp
+Thumbs.db
+desktop.ini
+
+# saídas locais de teste
+*.classbrowser.txt
+*.scctext.txt

@@ -172,3 +172,20 @@ Se o upload falhar (DOM alterado, formato recusado, aba sem login), o painel ofe
 O texto é **acrescentado** ao conteúdo atual, e a mensagem continua sem ser enviada até você pressionar Enter.
 
 Limitações: a aba precisa estar logada, o Gemini precisa aceitar `.txt`, e `.xap-uploader-dropzone`, o menu e o input de arquivo são detalhes internos que podem mudar. Nesse caso, use o plano B ou **Copiar**/**Baixar .txt** no painel e anexe o arquivo manualmente.
+
+---
+
+## Caminho inverso (texto → `.scx`/`.sct`)
+
+O `DEFINE CLASS` gerado pelo Class Browser não é um formato-fonte recompilável: o `.scx` é uma tabela DBF + memo `.sct`, e o VFP não tem um comando “compilar `DEFINE CLASS` → `.scx`”. O SCCTEXT do VFP 9 também é, na prática, somente ida (`SCC_FORM_SUPPORT 1`; o código de volta existe, mas fica bloqueado pela checagem de suporte).
+
+O Fox2Txt usa o **FoxBin2Prg** para o round-trip:
+
+```foxpro
+DO foxbin2prg.prg WITH "form.scx"   && gera form.sc2 (texto editável)
+DO foxbin2prg.prg WITH "form.sc2"   && gera form.scx + form.sct
+```
+
+O `.sc2` preserva registros, propriedades, métodos, `UNIQUEID`, timestamps e campos binários. Depois de editar o `.sc2`, o servidor recompila, executa `COMPILE FORM` e reexporta o binário para comparar com o texto enviado. O resultado é devolvido em ZIP; os arquivos originais permanecem intactos.
+
+O FoxBin2Prg oficial exige VFP 9 SP1 (build 3504+). O Fox2Txt aplica uma única alteração na cópia em `%TEMP%` para aceitar também o build 2412; o arquivo em `server/vendor` não é modificado. Detalhes em `server/vendor/foxbin2prg/NOTICE.md`.

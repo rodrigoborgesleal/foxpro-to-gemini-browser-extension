@@ -120,7 +120,12 @@ function fillForm(state) {
   els.launchAtLogin.checked = Boolean(config.launchAtLogin);
   els.keepJobs.checked = Boolean(config.keepJobs);
   els.debug.checked = Boolean(config.debug);
-  els.defaultMode.value = config.defaultMode === 'scctext' ? 'scctext' : 'classbrowser';
+  els.defaultMode.value =
+    config.defaultMode === 'scctext'
+      ? 'scctext'
+      : config.defaultMode === 'foxbin2prg'
+        ? 'foxbin2prg'
+        : 'classbrowser';
 }
 
 function applyState(state, { fill = false, log = false } = {}) {
@@ -144,7 +149,9 @@ function gatherForm() {
     launchAtLogin: els.launchAtLogin.checked,
     keepJobs: els.keepJobs.checked,
     debug: els.debug.checked,
-    defaultMode: els.defaultMode.value === 'scctext' ? 'scctext' : 'classbrowser',
+    defaultMode: ['classbrowser', 'scctext', 'foxbin2prg'].includes(els.defaultMode.value)
+      ? els.defaultMode.value
+      : 'classbrowser',
   };
 }
 

@@ -49,7 +49,9 @@ function normalize(raw = {}) {
     debug: raw.debug === true,
     host: String(raw.host || DEFAULTS.host).trim() || DEFAULTS.host,
     port: clampInt(raw.port, 1024, 65535, DEFAULTS.port),
-    defaultMode: raw.defaultMode === 'scctext' ? 'scctext' : 'classbrowser',
+    defaultMode: ['classbrowser', 'scctext', 'foxbin2prg'].includes(raw.defaultMode)
+      ? raw.defaultMode
+      : 'classbrowser',
   };
 }
 

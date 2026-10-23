@@ -160,6 +160,16 @@
               <small>Todos os registros e propriedades binárias do .scx</small>
             </span>
           </label>
+          <label class="radio">
+            <input type="radio" name="mode" value="foxbin2prg" />
+            <span class="radio-body">
+              <span class="radio-head">
+                <strong>Round-trip (FoxBin2Prg)</strong>
+                <span class="tag">.sc2</span>
+              </span>
+              <small>Texto completo recompilável: preserva IDs, métodos e binários</small>
+            </span>
+          </label>
         </section>
       </div>
 
@@ -210,7 +220,20 @@
                 <path d="m8 11 4 4 4-4" />
                 <path d="M5 20h14" />
               </svg>
-              Baixar .txt
+              <span id="downloadLabel">Baixar .txt</span>
+            </button>
+            <button
+              id="rebuildBtn"
+              class="btn secondary small"
+              type="button"
+              disabled
+              hidden
+              title="Recompilar o texto .sc2 e baixar o .scx/.sct"
+            >
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.1 2.1-2.3-2.3 2.4-2.8Z" />
+              </svg>
+              Recompilar .scx
             </button>
             <button
               id="expandBtn"

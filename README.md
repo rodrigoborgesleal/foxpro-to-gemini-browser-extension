@@ -4,6 +4,8 @@ Extensão do Chrome + serviço local que **extrai o código-fonte de um formulá
 
 A extração usa o **Class Browser** nativo do VFP 9 (`BROWSER.APP`): o formulário é aberto, o botão **View Class Code** é acionado e o código `DEFINE CLASS` gerado é devolvido como texto. Também há um modo alternativo com o **SCCTEXT** oficial e um plano B que insere o código como texto no editor do Gemini. O painel ainda oferece uma **prévia visual do layout** do formulário, desenhada a partir das propriedades do `.scx`.
 
+O caminho inverso é feito com o **FoxBin2Prg** (incluído em `server/vendor`): o formulário vira um texto `.sc2` completo e editável; depois de alterar o `.sc2`, o painel recompila e devolve um novo par `.scx`/`.sct` em um ZIP, **sem alterar os arquivos originais**.
+
 O painel só é ativado em uma aba do `gemini.google.com` com uma conta Google logada — nas demais abas o ícone fica desabilitado.
 
 ```
@@ -36,6 +38,7 @@ texto extraído      ◀────────────  lê out.txt (cp125
 | Windows | O VFP 9 é 32 bits e precisa de sessão de desktop (não roda como serviço/session 0). |
 | Visual FoxPro 9 | Testado com `09.00.0000.2412`. O `vfp9.exe` é localizado automaticamente em `C:\Program Files (x86)\Microsoft Visual FoxPro 9`, ou você informa o caminho nas configurações do app de bandeja. |
 | Node.js 18+ | Necessário apenas para rodar pelo código-fonte/CLI. O executável empacotado já inclui o runtime. |
+| FoxBin2Prg 1.21.05 | Incluído em `server/vendor/foxbin2prg` (MIT). Usado apenas no modo de round-trip; não é necessário instalar nada à parte. |
 | Google Chrome 120+ | A interface usa **Side Panel** e só ativa em `gemini.google.com` com conta logada. |
 
 ## Instalação
@@ -113,14 +116,23 @@ Também é possível gerar só a pasta desempacotada com `npm.cmd run pack` (`se
 
 Se o anexo falhar (Gemini mudou o DOM, aba sem login, upload recusado), use o botão **Inserir como texto no Gemini (plano B)** na prévia. Ele coloca o código diretamente no editor do Gemini; depois revise e pressione Enter. O plano B também exige a aba logada.
 
-O painel mostra uma prévia, o tamanho e o tempo da extração. Há também **Copiar** e **Baixar .txt**. O arquivo anexado chama-se `<nome-do-scx>.<modo>.txt` (ex.: `cadastro.classbrowser.txt`).
+O painel mostra uma prévia, o tamanho e o tempo da extração. Há também **Copiar** e **Baixar .txt** (no modo round-trip, **Baixar .sc2**). O arquivo anexado chama-se `<nome-do-scx>.<modo>.txt` (ex.: `cadastro.classbrowser.txt`).
+
+#### Round-trip: editar e recompilar
+
+1. Em **Formato da extração**, escolha **Round-trip (FoxBin2Prg)** e clique em **Extrair**.
+2. O painel mostra o conteúdo `.sc2`, que preserva todos os registros, métodos, propriedades, IDs e binários do formulário.
+3. Anexe o `.txt` ao Gemini, peça a alteração e cole a resposta de volta no editor da prévia (ou edite manualmente).
+4. Clique em **Recompilar .scx**. O servidor gera um novo `.scx` + `.sct`, verifica a recompilação e baixa um ZIP. **Os arquivos originais não são alterados**; copie o conteúdo do ZIP para o projeto depois de conferir no VFP.
+
+O modo round-trip também preenche a aba **Layout**. O texto `.sc2` não é um `DEFINE CLASS` compilável: ele é o formato estruturado do FoxBin2Prg, e é esse formato que deve ser editado e devolvido. Para alterações grandes de estrutura, o resultado deve ser conferido no Form Designer do VFP.
 
 A prévia tem duas abas:
 
 - **Código** — editor com realce de sintaxe do Visual FoxPro 9 (comentários, strings, comandos, SQL, PEMs e variáveis de sistema) e IntelliSense: sugestões de comandos, funções, classes base, propriedades/eventos/métodos de `THIS`, `THISFORM`, `_SCREEN` e da cadeia de objetos (`THISFORM.cmdSalvar.`), além de variáveis, `#DEFINE` e rotinas do próprio arquivo. Use **Ctrl+Espaço** ou **Ctrl+J** para abrir as sugestões, **↑/↓** para navegar, **Enter/Tab** para aceitar e **Esc** para fechar.
 - **Layout** — prévia visual do formulário, com posição, tamanho, cores, fontes, bordas e controles desenhados a partir das propriedades do `.scx`. Use **Ajustar** para enquadrar o formulário e o controle de **Zoom** para aproximar/afastar. O botão **Expandir** (ou `Esc` no modo expandido) funciona nas duas abas.
 
-O texto editado é o que vai para **Copiar**, **Baixar .txt**, **Inserir como texto** e para o anexo quando você clica em **Extrair e anexar** sem sair do formulário atual. A prévia de layout é somente leitura e não altera o texto extraído.
+O texto editado é o que vai para **Copiar**, **Baixar .txt**/**Baixar .sc2**, **Inserir como texto** e para o anexo quando você clica em **Extrair e anexar** sem sair do formulário atual. A prévia de layout é somente leitura e não altera o texto extraído.
 
 ### Ativação do painel
 
@@ -140,10 +152,11 @@ O login é detectado pela própria página do Gemini (`extension/gemini-auth.js`
 | --- | --- | --- |
 | `classbrowser` (padrão) | Código `DEFINE CLASS ... ENDDEFINE` com propriedades, `ADD OBJECT` e métodos — a mesma saída do botão *View Class Code* | Melhor contexto para o Gemini: código limpo e legível |
 | `scctext` | Dump completo do `.scx` no formato do conversor oficial `SCCTEXT.PRG` (todos os registros, propriedades e memos) | Depurar perda de informação, comparar versões, casos em que o Class Browser falha |
+| `foxbin2prg` | Texto `.sc2` completo e editável do FoxBin2Prg (registros, métodos, propriedades, IDs, timestamps e binários) | Editar e **recompilar** de volta para `.scx`/`.sct` |
 
 O preâmbulo executável (`PUBLIC`/`NEWOBJECT`/`Show`) é removido por padrão no modo `classbrowser`; o cabeçalho `*-- Form: ... DEFINE CLASS` é mantido.
 
-A prévia de layout usa o dump do **SCCTEXT** nos dois modos. No modo `scctext` o próprio `out.txt` é reaproveitado; no modo `classbrowser` o VFP gera um `layout.txt` adicional **antes** de abrir o Class Browser (depois dele o SCCTEXT enxerga zero registros). Se o layout falhar, a extração de texto continua normalmente e a aba **Layout** fica indisponível.
+A prévia de layout usa o dump do **SCCTEXT** nos três modos. No modo `scctext` o próprio `out.txt` é reaproveitado; nos modos `classbrowser` e `foxbin2prg` o VFP gera um `layout.txt` adicional **antes** da outra conversão (depois do Class Browser o SCCTEXT enxerga zero registros). Se o layout falhar, a extração de texto continua normalmente e a aba **Layout** fica indisponível.
 
 ## CLI (sem Chrome)
 
@@ -151,10 +164,13 @@ A prévia de layout usa o dump do **SCCTEXT** nos dois modos. No modo `scctext` 
 cd server
 node cli.js "C:\Projetos\MeuApp\forms\cadastro.scx"
 node cli.js cadastro.scx --mode=scctext -o cadastro.txt
+node cli.js cadastro.scx --mode=foxbin2prg -o cadastro.sc2
+node cli.js --rebuild cadastro.sc2 --scx cadastro.scx -o C:\temp\saida
 node cli.js cadastro.scx --preamble
 ```
 
-Saída padrão: `<nome>.classbrowser.txt` ou `<nome>.scctext.txt` ao lado do `.scx`.
+Saída padrão da extração: `<nome>.classbrowser.txt`, `<nome>.scctext.txt` ou `<nome>.sc2` ao lado do `.scx`.
+A recompilação grava `<nome>.recompilado.scx`, `<nome>.recompilado.sct` e `<nome>.recompilado.zip` na pasta indicada (ou ao lado do `.sc2`), sem sobrescrever os originais.
 O `.sct` (memo) é lido automaticamente quando existe.
 
 ## Configuração
@@ -171,7 +187,7 @@ Abra **Configurações** no ícone da bandeja:
 | Iniciar com o Windows | desligado | Registra o Fox2Txt para abrir junto com o Windows. |
 | Manter arquivos temporários | desligado | Mantém a pasta do job para diagnóstico. |
 | Log detalhado | desligado | Inclui stdout/stderr do VFP nos erros e no log. |
-| Modo padrão (CLI) | `classbrowser` | Usado por `cli.js` e por requisições HTTP sem `mode`. |
+| Modo padrão (CLI) | `classbrowser` | Usado por `cli.js` e por requisições HTTP sem `mode` (`classbrowser`, `scctext` ou `foxbin2prg`). |
 
 As alterações são lidas a cada extração; não é necessário reiniciar o servidor ao trocar o caminho do VFP ou o tempo limite. A porta permanece `8765` porque a extensão usa esse endereço fixo.
 
@@ -198,7 +214,11 @@ Continuam disponíveis para uso avançado/CLI e têm precedência sobre o `confi
 - **Sessão interativa**: o VFP abre uma janela por ~1–2 s (o extrator esconde tudo o que consegue). Não funciona em serviço do Windows.
 - **Code page**: o VFP grava em ANSI (cp1252). O servidor converte para UTF-8; caracteres fora do cp1252 podem não ser representados.
 - **`.sct` obrigatório**: o `.scx` não contém o código dos métodos; ele fica no memo `.sct`. Sem esse arquivo o VFP falha (e abre um diálogo que trava a extração), então o painel bloqueia a operação e avisa.
-- **Classes pai**: o código gerado referencia a classe pai (`DEFINE CLASS x AS y`). Se `y` vier de um `.vcx` do projeto, o Gemini verá a referência, não a implementação de `y`.
+- **Round-trip usa `.sc2`, não `DEFINE CLASS`**: o texto do modo `foxbin2prg` é o formato estruturado do FoxBin2Prg. O `DEFINE CLASS` do Class Browser não é compilável de volta para `.scx`; use o modo round-trip para editar e recompilar.
+- **Recompilação não altera o projeto**: o servidor devolve um ZIP com `.scx`/`.sct`; copie para a pasta do projeto depois de conferir no VFP. A verificação automática reexporta o binário e compara o texto, mas não substitui a conferência no Form Designer.
+- **Classes pai**: a referência `AS classe OF "..\lib.vcx"` é preservada no `.sc2`; a compilação no VFP fora do projeto pode não resolver a biblioteca pai. O `.scx` gerado deve ser usado na mesma estrutura de pastas do projeto.
+- **FoxBin2Prg e VFP 9 RTM**: o FoxBin2Prg oficial exige VFP 9 SP1 (build 3504+). O Fox2Txt aplica uma única troca na cópia em `%TEMP%` para funcionar também no build 2412; o round-trip é validado automaticamente.
+- **Caracteres fora do cp1252**: o `.sc2` é gravado em cp1252. Caracteres Unicode que não existem nessa code page (emoji, por exemplo) são recusados na recompilação para evitar corrupção.
 - **Prévia de layout aproximada**: o `.scx` grava apenas propriedades diferentes do padrão. O renderizador aplica os padrões do VFP 9 (Arial 9, fundo do formulário `F0F0F0`, textbox branco etc.), então cores/fontes padrão e temas nativos do Windows podem variar. Classes herdadas de `.vcx` não são resolvidas: o controle é desenhado com a classe base e marcado com contorno tracejado.
 - **Controles sem interação**: a prévia não executa código, consultas, imagens externas nem ActiveX. OLE/ActiveX aparece como placeholder e `PageFrame` com `Tabs = .F.` mostra apenas a página ativa (as demais dependem de código em tempo de execução).
 - **Anexo**: o `.txt` é enviado ao Gemini no momento do anexo (é um upload normal). A aba precisa estar logada e o Gemini precisa aceitar `.txt`; formulários grandes geram dezenas de KB e o upload é rápido.
@@ -219,6 +239,11 @@ Continuam disponíveis para uso avançado/CLI e têm precedência sobre o `confi
 | `Class Browser nao inicializou` | O VFP não conseguiu abrir a interface. Garanta uma sessão de desktop ativa e que o VFP abre manualmente. |
 | `A porta 8765 já está em uso` | Feche a outra instância do Fox2Txt/servidor. Em modo CLI você pode usar `FOX2TXT_PORT=8790` (e ajustar `API` em `extension/sidepanel.js`). |
 | “O arquivo .sct (memo) não está na pasta” | Selecione a pasta que contém o `.scx` **e** o `.sct` (o memo guarda os métodos). |
+| O botão **Recompilar .scx** não aparece | Ele só existe no modo **Round-trip (FoxBin2Prg)**. Extraia o formulário nesse modo primeiro. |
+| Alterei o código e o recurso novo não aparece | Reinicie o servidor/bandeja e recarregue a extensão em `chrome://extensions`; o servidor em execução mantém o código antigo em memória. |
+| “O texto não parece ser um arquivo .sc2” | Use o texto gerado pelo modo round-trip e mantenha o cabeçalho `FOXBIN2PRG` e as seções `DEFINE CLASS`. Não devolva o `DEFINE CLASS` do Class Browser. |
+| `FoxBin2Prg` não gera o `.scx` | Confira `%APPDATA%\Fox2Txt\logs\server.log`; o FoxBin2Prg grava detalhes em `foxbin2prg_errorlog.ERR` na pasta temporária do job. Ative **Manter arquivos temporários** para inspecionar. |
+| Verificação com linhas adicionadas/removidas | O formulário compilou, mas a reexportação não ficou idêntica ao texto enviado. Confira a amostra no painel e abra o `.scx` no VFP antes de usar. |
 | Arquivo não aparece como anexo | A aba não está logada, o `.txt` foi recusado ou o DOM mudou. Faça login, confira o aviso do Gemini e use o plano B **Inserir como texto**. |
 | O plano B não insere texto | Confirme que a aba `gemini.google.com` está logada e com o campo de mensagem visível. O log detalhado pode ser ativado nas configurações. |
 | A bandeja não aparece | Procure o ícone em “Mostrar ícones ocultos” da barra de tarefas e fixe-o. |
@@ -233,8 +258,11 @@ server/
   core.js            fila, job temporário, spawn do vfp9.exe, cp1252→UTF-8
   layout.js          SCCTEXT → JSON de objetos visuais para a prévia
   config.js          config.json, logs e caminhos (%APPDATA%\Fox2Txt)
-  cli.js             uso sem extensão
+  cli.js             uso sem extensão (extração + recompilação)
+  zip.js             ZIP mínimo (store) para devolver .scx + .sct
   vfp/extractor.prg  automação do Class Browser / SCCTEXT (roda dentro do VFP)
+  vfp/fb2p.prg       wrapper do FoxBin2Prg (BIN2PRG / PRG2BIN + validação)
+  vendor/foxbin2prg/ runtime FoxBin2Prg 1.21.05 (MIT; ver NOTICE.md)
   start-server.cmd   servidor sem bandeja
   systray/
     main.js          processo principal do Electron (bandeja, IPC, servidor)
@@ -265,3 +293,9 @@ docs/
 - Cada extração usa uma pasta temporária isolada, apagada ao final (a opção **Manter arquivos temporários** desativa essa limpeza para diagnóstico).
 - As configurações e logs ficam apenas em `%APPDATA%\Fox2Txt`; o aplicativo de bandeja não envia dados para a internet.
 - O servidor não aceita caminhos arbitrários: a extensão envia os **bytes** do `.scx`/`.sct`, não um caminho.
+- A recompilação também recebe apenas bytes e texto; o resultado é devolvido em base64/ZIP e nunca é gravado por cima do projeto do usuário.
+
+## Créditos
+
+- **FoxBin2Prg 1.21.05** — Fernando D. Bozzo / Lutz Scheffler, MIT. Runtime incluído em `server/vendor/foxbin2prg`; consulte `NOTICE.md` e `license` nessa pasta.
+- **Class Browser / SCCTEXT** — componentes do Visual FoxPro 9 (Microsoft), usados a partir da instalação local do usuário.

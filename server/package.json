@@ -2,7 +2,7 @@
   "name": "fox2txt",
   "version": "0.2.0",
   "private": true,
-  "description": "Extrator local de código de formulários Visual FoxPro (.scx) via Class Browser / SCCTEXT, com bandeja do Windows",
+  "description": "Extrator e recompilador local de formulários Visual FoxPro (.scx/.sct) via Class Browser, SCCTEXT e FoxBin2Prg, com bandeja do Windows",
   "main": "systray/main.js",
   "author": "Fox2Txt",
   "license": "MIT",
@@ -36,7 +36,9 @@
       "core.js",
       "layout.js",
       "config.js",
+      "zip.js",
       "vfp/**/*",
+      "vendor/**/*",
       "package.json"
     ],
     "extraResources": [

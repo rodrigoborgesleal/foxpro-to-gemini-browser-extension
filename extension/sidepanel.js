@@ -70,6 +70,8 @@ const els = {
   intelliHelp: document.getElementById('intelliHelp'),
   copyBtn: document.getElementById('copyBtn'),
   downloadBtn: document.getElementById('downloadBtn'),
+  downloadLabel: document.getElementById('downloadLabel'),
+  rebuildBtn: document.getElementById('rebuildBtn'),
   insertTextBtn: document.getElementById('insertTextBtn'),
   themeToggle: document.getElementById('themeToggle'),
   main: document.getElementById('main'),
@@ -88,6 +90,7 @@ const state = {
   text: '',
   fileName: '',
   attachmentName: '',
+  downloadName: '',
   extractedFormPath: '',
   extractedMode: '',
   editorDirty: false,
@@ -409,9 +412,13 @@ function updateEditorInfo(text) {
   if (!els.editorInfo) return;
   const value = text == null ? (els.preview ? els.preview.value : '') : text;
   const lines = value ? value.split('\n').length : 1;
+  const suffix =
+    String(state.extractedMode).toLowerCase() === 'foxbin2prg'
+      ? ROUNDTRIP_INFO
+      : EDITOR_INFO_DEFAULT;
   els.editorInfo.textContent = `${fmtInt(value.length)} caracteres · ${fmtInt(
     lines,
-  )} linhas · ${EDITOR_INFO_DEFAULT}`;
+  )} linhas · ${suffix}`;
 }
 
 function updateCursorStatus() {
@@ -1213,6 +1220,14 @@ function setBusy(busy) {
   els.extractBtn.disabled = busy || locked || !canExtract;
   els.insertBtn.disabled = busy || locked || !canExtract;
   els.insertTextBtn.disabled = busy || locked || els.previewBox.hidden;
+  if (els.rebuildBtn) {
+    els.rebuildBtn.disabled =
+      busy ||
+      locked ||
+      els.previewBox.hidden ||
+      !state.text ||
+      String(state.extractedMode).toLowerCase() !== 'foxbin2prg';
+  }
   els.formSelect.disabled = busy || locked || state.forms.length === 0;
   els.folderInput.disabled = busy || locked;
 }
@@ -1415,10 +1430,13 @@ function onFolderSelected() {
 
 const EDITOR_INFO_DEFAULT =
   'A prévia é editável: o texto alterado é usado em Copiar, Baixar e Inserir como texto.';
+const ROUNDTRIP_INFO =
+  'Edite o .sc2 e use "Recompilar .scx": o .scx/.sct originais não são alterados.';
 
 function resetPreview() {
   state.text = '';
   state.attachmentName = '';
+  state.downloadName = '';
   state.extractedFormPath = '';
   state.extractedMode = '';
 
@@ -1441,6 +1459,11 @@ function resetPreview() {
   els.copyBtn.disabled = true;
   els.downloadBtn.disabled = true;
   els.insertTextBtn.disabled = true;
+  if (els.rebuildBtn) {
+    els.rebuildBtn.hidden = true;
+    els.rebuildBtn.disabled = true;
+  }
+  if (els.downloadLabel) els.downloadLabel.textContent = 'Baixar .txt';
 }
 
 function onFormSelected() {
@@ -1500,7 +1523,8 @@ function showResult(data) {
       ? 'Ver a prévia visual do formulário'
       : 'Layout indisponível para esta extração';
   }
-  if (state.layout) {
+  const roundTripMode = String(data.stats?.mode || '').toLowerCase() === 'foxbin2prg';
+  if (state.layout && !roundTripMode) {
     setPreviewView('layout');
   } else {
     state.layoutSize = { width: 0, height: 0 };
@@ -1522,6 +1546,17 @@ function showResult(data) {
   els.copyBtn.disabled = !state.text;
   els.downloadBtn.disabled = !state.text;
   els.insertTextBtn.disabled = !state.text || !state.allowed;
+  if (els.downloadLabel) {
+    els.downloadLabel.textContent =
+      String(data.stats?.mode || '').toLowerCase() === 'foxbin2prg'
+        ? 'Baixar .sc2'
+        : 'Baixar .txt';
+  }
+  if (els.rebuildBtn) {
+    const roundTrip = String(data.stats?.mode || '').toLowerCase() === 'foxbin2prg';
+    els.rebuildBtn.hidden = !roundTrip;
+    els.rebuildBtn.disabled = !roundTrip || !state.text || !state.allowed;
+  }
 }
 
 async function extract({ insert }) {
@@ -1571,7 +1606,9 @@ async function extract({ insert }) {
     setStatus(
       mode === 'classbrowser'
         ? 'Extraindo com o Class Browser do VFP…'
-        : 'Extraindo com o SCCTEXT do VFP…',
+        : mode === 'foxbin2prg'
+          ? 'Extraindo com o FoxBin2Prg (texto .sc2 recompilável)…'
+          : 'Extraindo com o SCCTEXT do VFP…',
       '',
       true,
     );
@@ -1596,13 +1633,17 @@ async function extract({ insert }) {
         .replace(/\.[^.]+$/, '')
         .replace(/[\\/:*?"<>|]+/g, '_') || 'formulario';
     state.attachmentName = `${baseName}.${usedMode}.txt`;
+    state.downloadName =
+      usedMode === 'foxbin2prg' ? `${baseName}.sc2` : state.attachmentName;
     state.extractedFormPath = form.path;
     state.extractedMode = usedMode;
     showResult(data);
 
     const seconds = ((performance.now() - started) / 1000).toFixed(1);
     setStatus(
-      `Extração concluída: ${fmtInt(data.stats.chars)} caracteres em ${seconds}s.`,
+      usedMode === 'foxbin2prg'
+        ? `Texto .sc2 gerado (${fmtInt(data.stats.chars)} caracteres em ${seconds}s). Edite e use "Recompilar .scx".`
+        : `Extração concluída: ${fmtInt(data.stats.chars)} caracteres em ${seconds}s.`,
       'ok',
     );
 
@@ -2052,12 +2093,127 @@ function downloadText() {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download =
+    state.downloadName ||
     state.attachmentName ||
     `${state.fileName.replace(/\.[^.]+$/, '') || 'formulario'}.${getMode()}.txt`;
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function downloadBase64(fileName, base64, type) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const blob = new Blob([bytes], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+async function rebuildForm() {
+  if (state.busy) return;
+  if (!state.allowed) {
+    setStatus(
+      'A extensão só é ativada em uma aba do Gemini com conta Google logada.',
+      'error',
+    );
+    return;
+  }
+
+  const form = getSelectedForm();
+  if (!form) {
+    setStatus('Selecione o formulário .scx antes de recompilar.', 'error');
+    return;
+  }
+  if (String(state.extractedMode).toLowerCase() !== 'foxbin2prg') {
+    setStatus(
+      'A recompilação está disponível no modo "Round-trip (FoxBin2Prg)". Extraia o formulário nesse modo primeiro.',
+      'error',
+    );
+    return;
+  }
+  if (state.extractedFormPath !== form.path) {
+    setStatus('O formulário selecionado mudou. Extraia novamente antes de recompilar.', 'error');
+    return;
+  }
+  if (!state.text.trim()) {
+    setStatus('O texto .sc2 está vazio.', 'error');
+    return;
+  }
+
+  const sctFile = findSct(form);
+  if (!sctFile) {
+    setStatus(
+      'O arquivo .sct (memo) não está na pasta selecionada. Selecione a pasta que contém o .scx e o .sct juntos.',
+      'error',
+    );
+    return;
+  }
+
+  setBusy(true);
+  setStatus('Recompilando o .sc2 com o FoxBin2Prg…', '', true);
+  try {
+    const scx = await readBase64(form.file);
+    const sct = await readBase64(sctFile);
+    const response = await fetch(`${API}/rebuild`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: form.file.name,
+        scx,
+        sct,
+        text: state.text,
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || `Falha HTTP ${response.status}`);
+    }
+
+    downloadBase64(
+      data.zipName || `${form.file.name.replace(/\.[^.]+$/, '')}.recompilado.zip`,
+      data.zip,
+      'application/zip',
+    );
+
+    const v = data.verification || {};
+    const stats = data.stats || {};
+    let message = `Recompilado: ${fmtInt(stats.records)} registro(s), ${fmtInt(
+      stats.fields,
+    )} campo(s). ZIP baixado; os arquivos originais não foram alterados.`;
+    if (v.checked && v.identical) {
+      message += ' Verificação: o texto reexportado é idêntico ao enviado.';
+    } else if (v.checked) {
+      message += ` Verificação: ${fmtInt(v.added)} linha(s) adicionada(s) / ${fmtInt(
+        v.removed,
+      )} removida(s) — confira o .sc2 antes de usar.`;
+    } else if (v.warning) {
+      message += ` Aviso da verificação: ${v.warning}`;
+    }
+    setStatus(message, 'ok');
+  } catch (error) {
+    const message = error?.message || String(error);
+    if (/failed to fetch|networkerror|load failed|fetch/i.test(message) || !state.serverOk) {
+      setStatus(
+        'Servidor local offline. Execute server\\start-server.cmd (ou "npm start" em server\\) e tente de novo.',
+        'error',
+      );
+    } else {
+      setStatus(message, 'error');
+    }
+    checkHealth();
+  } finally {
+    setBusy(false);
+  }
 }
 
 async function init() {
@@ -2068,6 +2224,7 @@ async function init() {
   els.insertBtn.addEventListener('click', () => extract({ insert: true }));
   els.copyBtn.addEventListener('click', copyText);
   els.downloadBtn.addEventListener('click', downloadText);
+  if (els.rebuildBtn) els.rebuildBtn.addEventListener('click', rebuildForm);
   els.insertTextBtn.addEventListener('click', insertTextFallback);
   if (els.themeToggle) els.themeToggle.addEventListener('click', toggleTheme);
   els.gateAction.addEventListener('click', onGateAction);

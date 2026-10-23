@@ -4,6 +4,7 @@ const http = require('http');
 const { URL } = require('url');
 const {
   extract,
+  rebuild,
   enqueue,
   getHealth,
   ensureRuntime,
@@ -130,7 +131,8 @@ function createFoxServer(options = {}) {
           `Config : ${getConfigPath()}`,
           '',
           'GET  /health',
-          'POST /extract   { fileName, scx(base64), sct(base64), mode: "classbrowser"|"scctext" }',
+          'POST /extract   { fileName, scx(base64), sct(base64), mode: "classbrowser"|"scctext"|"foxbin2prg" }',
+          'POST /rebuild   { fileName, scx(base64), sct(base64), text: ".sc2 editado" }',
           '',
         ].join('\n'),
       );
@@ -167,6 +169,56 @@ function createFoxServer(options = {}) {
       } catch (err) {
         const known = err instanceof ExtractionError;
         const status = known && /INVALID|MISSING|BODY_TOO_LARGE/.test(err.code) ? 400 : 500;
+        logError(`ERRO ${url.pathname}: ${err.message}`);
+        if (known && err.details && debugEnabled()) {
+          logError(err.details);
+        }
+        sendJson(res, status, {
+          ok: false,
+          error: err.message || 'Erro desconhecido.',
+          code: known ? err.code : 'INTERNAL_ERROR',
+          details: known && debugEnabled() ? err.details : undefined,
+          ms: Date.now() - started,
+        });
+      }
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/rebuild') {
+      const started = Date.now();
+      try {
+        const body = await readJsonBody(req, maxBody);
+        const scx = fromBase64(body.scx);
+        const sct = fromBase64(body.sct);
+        const fileName = String(body.fileName || 'form.scx');
+        const text = String(body.text || '');
+
+        log(
+          `rebuild ${fileName} (scx=${scx ? scx.length : 0}B, sct=${
+            sct ? sct.length : 0
+          }B, texto=${Buffer.byteLength(text, 'utf8')}B)`,
+        );
+
+        const result = await enqueue(() =>
+          rebuild({
+            fileName,
+            scx,
+            sct,
+            text,
+            timeoutMs: body.timeoutMs,
+          }),
+        );
+
+        log(
+          `rebuild ok ${fileName} ${result.stats.scxBytes}B/${result.stats.sctBytes}B ` +
+            `em ${result.stats.totalMs}ms`,
+        );
+        sendJson(res, 200, result);
+      } catch (err) {
+        const known = err instanceof ExtractionError;
+        const status = known && /INVALID|MISSING|BODY_TOO_LARGE|EMPTY_TEXT|TEXT_ENCODING/.test(err.code)
+          ? 400
+          : 500;
         logError(`ERRO ${url.pathname}: ${err.message}`);
         if (known && err.details && debugEnabled()) {
           logError(err.details);
